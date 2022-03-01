@@ -3,6 +3,12 @@ const allMatchobj = require('./allMatch')
 const request = require('request');
 const cheerio = require("cheerio");
 const fs = require("fs")
+const path = require("path")
+
+let iplPath = path.join(__dirname, "IPL");
+//__dirname gives the path of parent directory.
+dirCreator(iplPath);
+
 request(url, function (error, response, html) {
     if (error)
         console.log(error)
@@ -17,13 +23,12 @@ function extractLink(html) {
     console.log(link);
     let fullLink = "https://www.espncricinfo.com" + link;
     console.log(fullLink);
-
     allMatchobj.getAllMatch(fullLink);
 }
 
-function dirCreator(filePath) {
-    if (fs.existsSync(filePath) == false) { 
-        fs.mkdirSync(filePath) 
+function dirCreator(folderpath) {
+    if (fs.existsSync(folderpath) == false) {
+        fs.mkdirSync(folderpath)
     }
 }
 

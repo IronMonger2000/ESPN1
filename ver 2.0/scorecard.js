@@ -1,6 +1,9 @@
 // const url = "https://www.espncricinfo.com/series/ipl-2020-21-1210595/mumbai-indians-vs-chennai-super-kings-1st-match-1216492/full-scorecard";
 const request = require('request')
 const cheerio = require('cheerio');
+const path = require("path")
+const fs = require("fs")
+const xlsx = require('xlsx')
 const { contains } = require('cheerio');
 function processScorecardUrl(url) {
     request(url, cb);
@@ -48,15 +51,47 @@ function extractLink(html) {
                 let sixes = selTool(allCols[6]).text().trim();
                 let StrikeRate = selTool(allCols[7]).text().trim();
                 console.log(` ${batsManName} | ${runs} | ${balls} | ${fours} | ${sixes} | ${StrikeRate}`);
+                processPlayer(teamname, opponentName, batsManName, runs, balls, fours, sixes, StrikeRate, venue, date, result)
             }
         }
-        console.log(`-------------------------------------------------------------------------------------`)
     }
-    console.log(`((((((((((((((((((((((((((((((((((((()))))))))))))))))))))))))))))))))))))`)
+    console.log(`NEXT MATCH NEXT MATCH NEXT MATCH NEXT MATCH NEXT MATCH NEXT MATCH NEXT MATCH NEXT MATCH`)
     // console.log(htmlString);
 }
 
+function dirCreator(folderpath) {
+    if (fs.existsSync(folderpath) == false) {
+        fs.mkdirSync(folderpath)
+    }
+}
 
+function processPlayer(teamname, opponentName, batsManName, runs, balls, fours, sixes, StrikeRate, venue, date, result) {
+    let teampath = path.join(__dirname, "IPL", teamname)
+    dirCreator(teampath);
+
+    let filepath = path.join(teampath, batsManName + '.xlsx');
+    let content = excelReader(filepath, batsManName);
+    let playerObj = {
+        batsManName, teamname, opponentName, runs, balls, fours, sixes, StrikeRate, venue, date, result
+    };
+    content.push(playerObj);
+    excelWriter(filepath, batsManName, content);
+}
+function excelWriter(fileName, sheetName, jsonData) {
+    let newWB = xlsx.utils.book_new();
+    let newWS = xlsx.utils.json_to_sheet(jsonData);
+    xlsx.utils.book_append_sheet(newWB, newWS, sheetName);
+    xlsx.writeFile(newWB, fileName);
+}
+
+function excelReader(fileName, sheetName) {
+    if (fs.existsSync(fileName) == false)
+        return []
+    let wb = xlsx.readFile(fileName);
+    let excelData = wb.Sheets[sheetName];
+    let ans = xlsx.utils.sheet_to_json(excelData);
+    return ans;
+}
 module.exports = {
     processThisLink: processScorecardUrl
 }
